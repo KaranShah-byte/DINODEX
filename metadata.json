@@ -1,6 +1,6 @@
 {
   "name": "DinoSphere 3D",
-  "description": "Explore prehistoric dinosaurs with interactive 3D models, era timeline filtering, and diet classifications.",
+  "description": "Explore prehistoric dinosaurs with interactive 3D models, Gemini AI paleontologist chat, Live voice conversations, and Google Maps fossil site grounding.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

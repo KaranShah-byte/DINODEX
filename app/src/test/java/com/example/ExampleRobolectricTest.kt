@@ -32,7 +32,7 @@ class ExampleRobolectricTest {
 
         // Filter by Cretaceous era
         val cretaceousDinos = DinosaurDatabase.filter(
-            query = "",
+            searchQuery = "",
             era = DinoEra.CRETACEOUS,
             diet = DinoDiet.ALL
         )
@@ -41,7 +41,7 @@ class ExampleRobolectricTest {
 
         // Filter by Carnivore diet
         val carnivores = DinosaurDatabase.filter(
-            query = "",
+            searchQuery = "",
             era = DinoEra.ALL,
             diet = DinoDiet.CARNIVORE
         )
@@ -50,7 +50,7 @@ class ExampleRobolectricTest {
 
         // Search by query
         val trexResults = DinosaurDatabase.filter(
-            query = "Tyrannosaurus",
+            searchQuery = "Tyrannosaurus",
             era = DinoEra.ALL,
             diet = DinoDiet.ALL
         )
@@ -73,4 +73,42 @@ class ExampleRobolectricTest {
             assertTrue("Model for $type should have baseScale > 0", model.baseScale > 0f)
         }
     }
+
+    @Test
+    fun `gemini model configuration contains required models`() {
+        assertEquals("gemini-3.8-flash", com.example.gemini.GeminiConfig.MODEL_FLASH)
+        assertEquals("gemini-4-argon", com.example.gemini.GeminiConfig.MODEL_ARGON)
+        assertEquals("gemini-3.1-flash-lite", com.example.gemini.GeminiConfig.MODEL_FLASH_LITE)
+        assertEquals("gemini-3.8-live", com.example.gemini.GeminiConfig.MODEL_LIVE)
+
+        val choices = com.example.gemini.GeminiModelChoice.values()
+        assertEquals(3, choices.size)
+        assertTrue(choices.any { it.modelId == "gemini-3.8-flash" })
+        assertTrue(choices.any { it.modelId == "gemini-4-argon" })
+        assertTrue(choices.any { it.modelId == "gemini-3.1-flash-lite" })
+    }
+
+    @Test
+    fun `chat view model initializes with welcome message and model switching`() {
+        val chatViewModel = com.example.gemini.viewmodels.ChatViewModel()
+        val initialMessages = chatViewModel.messages.value
+        assertEquals(1, initialMessages.size)
+        assertEquals(com.example.gemini.MessageSender.DR_REX, initialMessages[0].sender)
+        assertTrue(initialMessages[0].text.contains("Dr. Rex"))
+
+        chatViewModel.selectModel(com.example.gemini.GeminiModelChoice.ARGON)
+        assertEquals(com.example.gemini.GeminiModelChoice.ARGON, chatViewModel.selectedModel.value)
+
+        chatViewModel.selectModel(com.example.gemini.GeminiModelChoice.FLASH_LITE)
+        assertEquals(com.example.gemini.GeminiModelChoice.FLASH_LITE, chatViewModel.selectedModel.value)
+    }
+
+    @Test
+    fun `maps grounding view model provides preset paleontological queries`() {
+        val mapsViewModel = com.example.gemini.viewmodels.MapsGroundingViewModel()
+        assertTrue(mapsViewModel.presetQueries.isNotEmpty())
+        assertTrue(mapsViewModel.presetQueries.any { it.contains("T-Rex") })
+        assertTrue(mapsViewModel.presetQueries.any { it.contains("Hell Creek") })
+    }
 }
+

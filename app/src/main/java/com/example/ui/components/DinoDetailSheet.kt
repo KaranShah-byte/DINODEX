@@ -68,6 +68,9 @@ fun DinoDetailSheet(
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
     onClose: () -> Unit,
+    onAskDrRex: ((Dinosaur) -> Unit)? = null,
+    onFindMuseums: ((Dinosaur) -> Unit)? = null,
+    onVoiceChat: ((Dinosaur) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var selectedHotspot by remember { mutableStateOf<Hotspot3D?>(null) }
@@ -327,6 +330,76 @@ fun DinoDetailSheet(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 22.sp
                     )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Gemini AI Interactive Features for this Dinosaur
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (onAskDrRex != null) {
+                            androidx.compose.material3.FilledTonalButton(
+                                onClick = { onAskDrRex(dinosaur) },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("button_detail_ask_dr_rex")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Psychology,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Ask Dr. Rex", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        if (onVoiceChat != null) {
+                            androidx.compose.material3.FilledTonalButton(
+                                onClick = { onVoiceChat(dinosaur) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = Color(0x3300E676),
+                                    contentColor = Color(0xFF00E676)
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("button_detail_voice_chat")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Speed,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Live Voice", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        if (onFindMuseums != null) {
+                            androidx.compose.material3.FilledTonalButton(
+                                onClick = { onFindMuseums(dinosaur) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = Color(0x334285F4),
+                                    contentColor = Color(0xFF4285F4)
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("button_detail_find_maps")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Maps Sites", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                 }
             }
 
