@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DinoSphere 3D Firebase Schema",
+  "description": "Firestore database blueprint for user profile and expedition bookmarks in DinoSphere 3D",
+  "entities": {
+    "users": {
+      "path": "/users/{userId}",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId"]
+    },
+    "favorites": {
+      "path": "/users/{userId}/favorites/{favoriteId}",
+      "properties": {
+        "dinoId": { "type": "string" },
+        "name": { "type": "string" },
+        "era": { "type": "string" },
+        "diet": { "type": "string" },
+        "savedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["dinoId", "name"]
+    }
+  }
+}

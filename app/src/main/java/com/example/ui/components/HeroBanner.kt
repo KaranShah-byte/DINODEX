@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.ViewInAr
 import androidx.compose.material3.Button
@@ -129,7 +129,7 @@ fun HeroBanner(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CompareArrows,
+                            imageVector = Icons.AutoMirrored.Filled.CompareArrows,
                             contentDescription = "Compare",
                             tint = Color.White,
                             modifier = Modifier.size(14.dp)

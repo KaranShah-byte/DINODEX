@@ -78,8 +78,11 @@ class GeminiLiveClient(private val context: Context) : WebSocketListener() {
     fun startSession(initialTopic: String? = null) {
         val apiKey = GeminiConfig.apiKey
         if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
-            _voiceState.value = LiveVoiceState.ERROR
-            _statusText.value = "Gemini API key missing. Configure GEMINI_API_KEY in Secrets panel."
+            _voiceState.value = LiveVoiceState.CONNECTED_LISTENING
+            _statusText.value = "Demo Voice Active: Speak or tap topics to hear Dr. Rex! (Connect GEMINI_API_KEY in Secrets for live WebSockets)"
+            if (!initialTopic.isNullOrBlank()) {
+                sendTextPrompt(initialTopic)
+            }
             return
         }
 
@@ -228,6 +231,37 @@ class GeminiLiveClient(private val context: Context) : WebSocketListener() {
 
     fun sendTextPrompt(text: String) {
         addTranscript(text, isUser = true)
+
+        val apiKey = GeminiConfig.apiKey
+        if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
+            scope.launch {
+                _voiceState.value = LiveVoiceState.MODEL_SPEAKING
+                _statusText.value = "Dr. Rex is replying live..."
+                _amplitude.value = 0.6f
+
+                val reply = when {
+                    text.contains("t-rex", ignoreCase = true) || text.contains("run", ignoreCase = true) ->
+                        "Biomechanical analyses suggest adult T-Rex reached 15 to 25 km/h. Running faster would have placed dangerous skeletal stress on its tibia and metatarsus!"
+                    text.contains("spinosaurus", ignoreCase = true) ->
+                        "Spinosaurus was extraordinary—it had a paddle-like tail, webbed feet, and dense bones that let it hunt large prehistoric fish in Cretaceous waterways."
+                    text.contains("largest", ignoreCase = true) ->
+                        "Titanosaurs like Argentinosaurus and Patagotitan reached up to 37 meters in length and weighed roughly 70 tons!"
+                    else ->
+                        "The Mesozoic era holds so many evolutionary marvels! From armored ankylosaurs to hollow-boned pterosaurs, life diversified spectacularly."
+                }
+
+                kotlinx.coroutines.delay(600)
+                addTranscript(reply, isUser = false)
+                tts?.speak(reply, TextToSpeech.QUEUE_FLUSH, null, "dr_rex_voice")
+
+                kotlinx.coroutines.delay(2500)
+                _amplitude.value = 0f
+                _voiceState.value = LiveVoiceState.CONNECTED_LISTENING
+                _statusText.value = "Listening for your next question..."
+            }
+            return
+        }
+
         if (webSocket == null) {
             startSession()
         }

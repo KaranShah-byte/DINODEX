@@ -18,13 +18,13 @@ class ChatViewModel : ViewModel() {
                 "I'm here to answer any questions about Mesozoic dinosaurs, biomechanics, " +
                 "fossil discoveries, and extinction events. What prehistoric mystery shall we explore?",
         sender = MessageSender.DR_REX,
-        modelUsed = GeminiConfig.MODEL_FLASH
+        modelUsed = GeminiConfig.MODEL_FLASH_LITE
     )
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(listOf(initialWelcomeMessage))
     val messages: StateFlow<List<ChatMessage>> = _messages
 
-    private val _selectedModel = MutableStateFlow(GeminiModelChoice.FLASH)
+    private val _selectedModel = MutableStateFlow(GeminiModelChoice.FLASH_LITE)
     val selectedModel: StateFlow<GeminiModelChoice> = _selectedModel
 
     private val _isLoading = MutableStateFlow(false)

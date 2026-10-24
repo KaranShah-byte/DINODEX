@@ -21,10 +21,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -58,8 +58,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.auth.AuthViewModel
+import com.example.model.DinosaurDatabase
+import kotlinx.coroutines.launch
+import com.example.auth.GoogleSignInCard
+import com.example.auth.UserProfileDialog
+import com.example.auth.UserProfileTopBarButton
 import com.example.gemini.viewmodels.ChatViewModel
 import com.example.gemini.viewmodels.LiveVoiceViewModel
 import com.example.gemini.viewmodels.MapsGroundingViewModel
@@ -86,9 +94,15 @@ fun DinoHomeScreen(
     chatViewModel: ChatViewModel = viewModel(),
     liveVoiceViewModel: LiveVoiceViewModel = viewModel(),
     mapsViewModel: MapsGroundingViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(DinoNavTab.ENCYCLOPEDIA) }
+    var showProfileDialog by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
+    val isSigningIn by authViewModel.isLoading.collectAsStateWithLifecycle()
 
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedEra by viewModel.selectedEra.collectAsStateWithLifecycle()
@@ -99,6 +113,16 @@ fun DinoHomeScreen(
     val dinosaurs by viewModel.filteredDinosaurs.collectAsStateWithLifecycle()
     val selectedDinoForDetail by viewModel.selectedDinoForDetail.collectAsStateWithLifecycle()
     val compareDinos by viewModel.compareDinos.collectAsStateWithLifecycle()
+
+    // Sync cloud favorites from Firestore upon sign-in
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            val cloudFavs = authViewModel.authManager.fetchCloudFavorites()
+            if (cloudFavs.isNotEmpty()) {
+                viewModel.setFavorites(cloudFavs)
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -144,7 +168,7 @@ fun DinoHomeScreen(
                                 .testTag("button_top_compare")
                         ) {
                             Icon(
-                                imageVector = Icons.Default.CompareArrows,
+                                imageVector = Icons.AutoMirrored.Filled.CompareArrows,
                                 contentDescription = "Compare Dinosaurs"
                             )
                         }
@@ -157,7 +181,7 @@ fun DinoHomeScreen(
                                 contentColor = if (favoritesOnly) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                             ),
                             modifier = Modifier
-                                .padding(end = 12.dp)
+                                .padding(end = 6.dp)
                                 .testTag("button_top_favorites")
                         ) {
                             Icon(
@@ -165,6 +189,13 @@ fun DinoHomeScreen(
                                 contentDescription = "Show Favorites"
                             )
                         }
+
+                        // Google Sign-In / User Profile Avatar
+                        UserProfileTopBarButton(
+                            user = currentUser,
+                            onClick = { showProfileDialog = true },
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background
@@ -259,11 +290,40 @@ fun DinoHomeScreen(
         ) {
             when (selectedTab) {
                 DinoNavTab.ENCYCLOPEDIA -> {
+                    val handleToggleFavorite: (String) -> Unit = { dinoId ->
+                        val wasFav = favoriteIds.contains(dinoId)
+                        viewModel.toggleFavorite(dinoId)
+                        if (currentUser != null) {
+                            val target = DinosaurDatabase.getById(dinoId)
+                            coroutineScope.launch {
+                                authViewModel.authManager.syncFavoriteToCloud(
+                                    dinoId = dinoId,
+                                    name = target?.name ?: dinoId,
+                                    era = target?.era?.title ?: "",
+                                    diet = target?.diet?.title ?: "",
+                                    isFavorite = !wasFav
+                                )
+                            }
+                        }
+                    }
+
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        // Google Sign-In Banner for new / unauthenticated users
+                        if (currentUser == null) {
+                            item {
+                                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                                    GoogleSignInCard(
+                                        onSignInClick = { authViewModel.signInWithGoogle() },
+                                        isLoading = isSigningIn
+                                    )
+                                }
+                            }
+                        }
+
                         // Hero Banner
                         item {
                             HeroBanner(
@@ -340,7 +400,7 @@ fun DinoHomeScreen(
                                     DinoCard(
                                         dinosaur = dino,
                                         isFavorite = favoriteIds.contains(dino.id),
-                                        onToggleFavorite = { viewModel.toggleFavorite(dino.id) },
+                                        onToggleFavorite = { handleToggleFavorite(dino.id) },
                                         onClick = { viewModel.selectDinosaurForDetail(dino) }
                                     )
                                 }
@@ -401,6 +461,22 @@ fun DinoHomeScreen(
                     initialDinoA = pair.first,
                     initialDinoB = pair.second,
                     onDismiss = { viewModel.closeCompare() }
+                )
+            }
+
+            // User Profile / Google Sign-In Dialog
+            if (showProfileDialog) {
+                UserProfileDialog(
+                    user = currentUser,
+                    isLoading = isSigningIn,
+                    onSignIn = {
+                        authViewModel.signInWithGoogle(
+                            onSuccess = { showProfileDialog = false }
+                        )
+                    },
+                    onSignOut = { authViewModel.signOut() },
+                    onDismiss = { showProfileDialog = false },
+                    favoritesCount = favoriteIds.size
                 )
             }
         }

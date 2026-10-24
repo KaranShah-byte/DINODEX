@@ -31,6 +31,11 @@ class MapsGroundingViewModel : ViewModel() {
         "Museums exhibiting Spinosaurus fossils in Europe and USA"
     )
 
+    init {
+        // Automatically fetch verified fossil sites on startup
+        search(presetQueries[0])
+    }
+
     fun onQueryChange(newQuery: String) {
         _query.value = newQuery
     }

@@ -31,13 +31,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -228,7 +228,7 @@ fun LiveVoiceScreen(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = if (voiceState == LiveVoiceState.MODEL_SPEAKING) {
-                            Icons.Default.VolumeUp
+                            Icons.AutoMirrored.Filled.VolumeUp
                         } else {
                             Icons.Default.Mic
                         },

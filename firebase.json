@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-android-dinosphe-a6108ab4-2f9b-45ab-964b-08fb97decc8a",
+      "rules": "firestore.rules"
+    }
+  ]
+}

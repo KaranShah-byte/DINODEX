@@ -104,6 +104,10 @@ class DinoViewModel : ViewModel() {
         _filterState.value = _filterState.value.copy(favoriteIds = current)
     }
 
+    fun setFavorites(ids: Set<String>) {
+        _filterState.value = _filterState.value.copy(favoriteIds = ids)
+    }
+
     fun toggleFavoritesOnly() {
         _filterState.value = _filterState.value.copy(favoritesOnly = !_filterState.value.favoritesOnly)
     }
